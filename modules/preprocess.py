@@ -50,7 +50,7 @@ train_data = []
 for q,a in list(product([f"질문_{x}" for x in range(1,3)],[f"답변_{x}" for x in range(1,6)])):
     for i in range(len(train)):
         train_data.append(
-            "<|im_start|> 다음 질문에 대해 자세하고 정확하게 답하시오. 질문 : "+ train.at[i,q] + " 답변 : <|im_end|><|im_start|>" + train.at[i,a] + "<|im_end|>"
+            "<|im_start|>user\n다음 질문에 대해 자세하고 정확하게 답하시오. 질문 : "+ train.at[i,q] + " 답변 : <|im_end|><|im_start|>assistant\n" + train.at[i,a] + "<|im_end|>"
         )
 
 data = pd.DataFrame(train_data)

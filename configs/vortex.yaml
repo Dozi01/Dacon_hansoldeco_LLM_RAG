@@ -1,0 +1,10 @@
+model_name : "Edentns/DataVortexS-10.7B-dpo-v1.6"
+
+# Fine-tuned model name
+new_model : "DataVortexS"
+
+wandb:
+  project_name : 'DataVortexS'
+
+dataset_name : 'solar'
+
