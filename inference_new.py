@@ -40,9 +40,6 @@ def main(CFG):
     db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
 
     # Retriever
-    result = db.similarity_search("하자 발생 시 보수 작업은?")
-    print(result)
-    
     retriever = db.as_retriever(search_kwargs={"k": 4})
 
     # Load LORA MODEL
@@ -72,8 +69,12 @@ def main(CFG):
 
     질문: {question}
 
-    유용한 답변: """
-
+    답변: """
+ 
+    '''
+    conversation = [ {'role': 'user', 'content': template} ] 
+    prompt = tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
+    '''
     custom_rag_prompt = PromptTemplate.from_template(template)
 
     rag_chain = (
@@ -82,46 +83,58 @@ def main(CFG):
         | hf
         | StrOutputParser()
     )
-    # Chunk generation
+    
+
+
+    # Chunk generation 
+    
     for chunk in rag_chain.stream("도배지에 녹은 자국이 발생하는 주된 원인과 그 해결 방법은 무엇인가요?"):
         print(chunk, end="", flush=True)
-
+    
+    print("=" * 80)
+    print("답변 생성 완료!")
+    print("=" * 80)
+    
+    
     # test data inference
-    test = pd.read_csv('./data/test.csv')
-    test['질문'] = test['질문'].apply(lambda x : re.split('[?!.]', x))
+    test = pd.read_csv('./data/test_cleaned.csv')
 
     preds = []
-    for test_questions in tqdm(test['질문']):
+    for test_question in tqdm(test['Question']):
         # 각 질문 row 별로 대답 저장
         preds_temp = []
+      
+        # 입력 텍스트를 토큰화하고 모델 입력 형태로 변환
+        print("="*80)
+        for chunk in rag_chain.stream(test_question):
+            preds_temp.append(chunk)
+            print(chunk, end="", flush=True)
+        print("="*80)
+            
+        '''    
+        input_ids = tokenizer.encode('질문 : ' + test_question + '답변 : ', return_tensors='pt')
 
-        for test_question in test_questions:
-            # ?!. 으로 split했을 때 공백이 나눠지는 경우 제외
-            if len(test_question) == 0: 
-                continue
-            # 입력 텍스트를 토큰화하고 모델 입력 형태로 변환
-            input_ids = tokenizer.encode('질문 : ' + test_question + '답변 : ', return_tensors='pt')
+        # 답변 생성
+        output_sequences = model.generate(
+            input_ids=input_ids.to(CFG.device),
+            max_length=500,
+            temperature=0.9,
+            top_k=1,
+            top_p=0.9,
+            repetition_penalty=1.3,
+            do_sample=True,
+            num_return_sequences=1
+        )
 
-            # 답변 생성
-            output_sequences = model.generate(
-                input_ids=input_ids.to(CFG.device),
-                max_length=500,
-                temperature=0.9,
-                top_k=1,
-                top_p=0.9,
-                repetition_penalty=1.3,
-                do_sample=True,
-                num_return_sequences=1
-            )
-
-            # 생성된 텍스트(답변) 저장
-            for generated_sequence in output_sequences:
-                full_text = tokenizer.decode(generated_sequence, skip_special_tokens=False)
-                # 질문과 답변의 사이를 나타내는 '답변 :'을 찾아, 이후부터 출력 해야 함
-                answer_start = full_text.find(tokenizer.eos_token) + len(tokenizer.eos_token)
-                answer_only = full_text[answer_start:].strip()
-                answer_only = answer_only.replace('\n', ' ')
-                preds_temp.append(answer_only)
+        # 생성된 텍스트(답변) 저장
+        for generated_sequence in output_sequences:
+            full_text = tokenizer.decode(generated_sequence, skip_special_tokens=False)
+            # 질문과 답변의 사이를 나타내는 '답변 :'을 찾아, 이후부터 출력 해야 함
+            answer_start = full_text.find(tokenizer.eos_token) + len(tokenizer.eos_token)
+            answer_only = full_text[answer_start:].strip()
+            answer_only = answer_only.replace('\n', ' ')
+            preds_temp.append(answer_only)
+        '''
             
         print(preds_temp)
         preds.append(preds_temp)
@@ -153,7 +166,7 @@ def main(CFG):
 
     submit.iloc[:,1:] = pred_embeddings
     submit.to_csv(f'./submission/{CFG.new_model}_embedding.csv', index=False)
-
+    
         
 
 
