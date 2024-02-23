@@ -18,9 +18,6 @@ from trl import SFTTrainer
 
 
 def main(CFG):
-    # dataset = load_dataset(dataset_name, split="train")
-    dataset = load_dataset("csv", data_files="./data/train_data.csv", split = 'train')
-
     # Load tokenizer and model with QLoRA configuration
     compute_dtype = getattr(torch, CFG.bnb.bnb_4bit_compute_dtype)
   
@@ -89,11 +86,17 @@ def main(CFG):
     print("=" * 80)
     print("Training arg SET")
     print("=" * 80)
-
+    data_files = {"train": "train_data_gemma.csv", "validation": "valid_data_gemma.csv"}
+    dataset = load_dataset("./data", data_files=data_files)
+    print("=" * 80)
+    print("Load Dataset")
+    print(dataset['train'][CFG.SFT.dataset_text_field][0])
+    print("=" * 80)
     # Set supervised fine-tuning parameters
     trainer = SFTTrainer(
         model=model,
-        train_dataset=dataset,
+        train_dataset=dataset['train'],
+        eval_dataset=dataset['validation'],
         peft_config=peft_config,
         dataset_text_field=CFG.SFT.dataset_text_field,
         max_seq_length=CFG.SFT.max_seq_length,
@@ -139,7 +142,7 @@ if __name__ == '__main__':
     
     wandb.login()
     wandb.init(project=CFG.wandb.project_name)
-    wandb.run.name = CFG.wandb.run_name
+    wandb.run.name = CFG.new_model
     wandb.config.update(CFG)
     wandb.run.save()
     

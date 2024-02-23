@@ -6,7 +6,6 @@ new_model : "SOLAR"
 
 wandb:
   project_name : 'SOLAR'
-  run_name : 'solar'
 
 device_map : 'auto'
 inference_batch_size : 4
@@ -14,7 +13,7 @@ inference_batch_size : 4
 # TrainingArguments parameters
 Train_args:
   # Output directory where the model predictions and checkpoints will be stored
-  output_dir : "./results"
+  output_dir : "./checkpoints/"
   # Number of training epochs
   num_train_epochs : 10
   # Enable fp16/bf16 training (set bf16 to True with an A100)
