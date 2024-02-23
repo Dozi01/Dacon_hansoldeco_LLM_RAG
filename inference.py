@@ -13,7 +13,7 @@ from tqdm import tqdm
 import pandas as pd
 import re
 from sentence_transformers import SentenceTransformer 
-print('hi')
+
 def main(CFG):
     
     # Load LORA MODEL
