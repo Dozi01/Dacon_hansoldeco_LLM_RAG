@@ -9,7 +9,7 @@ wandb:
 
 device_map : 'auto'
 inference_batch_size : 4
-
+dataset_name : 'defualt dataset'
 # TrainingArguments parameters
 Train_args:
   # Output directory where the model predictions and checkpoints will be stored

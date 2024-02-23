@@ -1,20 +1,26 @@
 from sentence_transformers import SentenceTransformer 
 import pandas as pd
 
-### 미완성 파일
 
-# Embedding Vector 추출에 활용할 모델(distiluse-base-multilingual-cased-v1) 불러오기
-model_sentence = SentenceTransformer('distiluse-base-multilingual-cased-v1')
+def concat_answer(answer_df : pd.DataFrame) -> pd.DataFrame:
+    # Ensure the 'answer' column is a string if it's not already
+    answer_df['answer'] = answer_df['answer'].apply(lambda x: ''.join(x))
+    # Group by 'id' and concatenate the answers
+    answer_by_id_df = answer_df.groupby('id')['answer'].apply(''.join).reset_index()
 
-# 생성한 모든 응답(답변)으로부터 Embedding Vector 추출
-pred_embeddings = model_sentence.encode(new_preds)
+    # Embedding Vector 추출에 활용할 모델(distiluse-base-multilingual-cased-v1) 불러오기
+    model_sentence = SentenceTransformer('distiluse-base-multilingual-cased-v1')
 
-submit = pd.read_csv('./data/sample_submission.csv')
-# 제출 양식 파일(sample_submission.csv)을 활용하여 Embedding Vector로 변환한 결과를 삽입
-result_df = pd.DataFrame()
-result_df['id'] = submit['id']
-result_df['result'] = new_preds
-result_df.to_csv(f'./submission/{CFG.new_model}_result.csv', index=False)
+    pred_embeddings = model_sentence.encode(answer_by_id_df['answer'])
 
-submit.iloc[:,1:] = pred_embeddings
-submit.to_csv(f'./submission/{CFG.new_model}_embedding.csv', index=False)
+    submission_df = pd.read_csv('../data/sample_submission.csv')
+    # 제출 양식 파일(sample_submission.csv)을 활용하여 Embedding Vector로 변환한 결과를 삽입
+    submission_df.iloc[:,1:] = pred_embeddings
+    return submission_df
+
+if __name__ == '__main__':
+    # useage example. change answer_file to test.
+    answer_file = 'SOLAR_lora256_rag_True_ft_True'
+    answer_df = pd.read_csv(f'../submission/{answer_file}.csv', encoding = 'utf-8')
+    submission_df = concat_answer(answer_df)
+    submission_df.to_csv(f'../submission/{answer_file}_embedding.csv', index=False)

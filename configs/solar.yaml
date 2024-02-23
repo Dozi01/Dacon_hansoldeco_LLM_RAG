@@ -1,18 +1,10 @@
 model_name : "LDCC/LDCC-SOLAR-10.7B"
 
 # Fine-tuned model name
-new_model : "SOLAR_lora256"
+new_model : "SOLAR_dset_change"
 
 wandb:
-  project_name : 'SOLAR_0219'
-  run_name : 'solar_lora256'
+  project_name : 'SOLAR'
 
+dataset_name : 'solar'
 
-# QLoRA parameters
-lora:
-  # LoRA attention dimension
-  lora_r : 256
-  # Alpha parameter for LoRA scaling
-  lora_alpha : 128
-  # Dropout probability for LoRA layers
-  lora_dropout : 0.1

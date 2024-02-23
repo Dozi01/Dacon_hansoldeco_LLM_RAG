@@ -22,6 +22,7 @@ import torch
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from modules.postprocess import concat_answer
 
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -146,9 +147,16 @@ def main(CFG):
     answer_df.to_csv(f'./submission/{file_name}', index = None)
 
     print("=" * 80)
-    print(f"File Saved : {file_name}")
+    print(f"Answer file Saved : {file_name}")
     print("=" * 80)
 
+    # concat answers groupby 'id'
+    submission_df = concat_answer(answer_df)
+    submission_df.to_csv(f'./submission/{file_name}_embeddings', index = None)
+
+    print("=" * 80)
+    print(f"Submission file Saved : {file_name}_embeddings")
+    print("=" * 80)
 
 
 if __name__ == '__main__':

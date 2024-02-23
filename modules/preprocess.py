@@ -12,7 +12,27 @@ train_data = []
 for q,a in list(product([f"질문_{x}" for x in range(1,3)],[f"답변_{x}" for x in range(1,6)])):
     for i in range(len(train)):
         train_data.append(
-            "<start_of_turn>user 다음 질문에 대해 정확하게 답하시오. 질문: "+ train.at[i,q] + " 답변 : <end_of_turn><start_of_turn>model" + train.at[i,a]
+            {'질문':train.at[i,q],
+             '답변':train.at[i,a]
+            }
+        )
+
+data = pd.DataFrame(train_data)
+train, valid = train_test_split(data, test_size=0.05, random_state=42)
+
+train.to_csv(datapath + "/train_data.csv",index=False,encoding='utf-8')
+valid.to_csv(datapath + "/valid_data.csv",index=False,encoding='utf-8')
+
+
+
+train = pd.read_csv(datapath + "/train.csv")
+
+train_data = []
+
+for q,a in list(product([f"질문_{x}" for x in range(1,3)],[f"답변_{x}" for x in range(1,6)])):
+    for i in range(len(train)):
+        train_data.append(
+            "<start_of_turn>user 다음 질문에 대해 정확하게 답하시오. 질문 : "+ train.at[i,q] + " 답변 : <end_of_turn><start_of_turn>model" + train.at[i,a]
         )
 
 data = pd.DataFrame(train_data)
@@ -30,7 +50,7 @@ train_data = []
 for q,a in list(product([f"질문_{x}" for x in range(1,3)],[f"답변_{x}" for x in range(1,6)])):
     for i in range(len(train)):
         train_data.append(
-            "<start_of_turn>user 다음 질문에 대해 정확하게 답하시오. 질문: "+ train.at[i,q] + " 답변 : <end_of_turn><start_of_turn>model" + train.at[i,a]
+            "<|im_start|> 다음 질문에 대해 자세하고 정확하게 답하시오. 질문 : "+ train.at[i,q] + " 답변 : <|im_end|><|im_start|>" + train.at[i,a] + "<|im_end|>"
         )
 
 data = pd.DataFrame(train_data)
