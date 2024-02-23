@@ -1,7 +1,6 @@
 from modules.utils import Config
 import argparse
 
-from dataloader.hansoldataset import load_hansol_dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer
@@ -38,15 +37,12 @@ def main(CFG):
         encode_kwargs=encode_kwargs
     )
 
-    # Load Documents (data loader)
-    loader = CSVLoader(file_path='Dacon_hansoldeco_LLM_RAG/data/train_data.csv', encoding='utf-8')
-    data = loader.load()
-
-    # Load ChromaDb
-    db = Chroma.from_documents(data, embeddings, persist_directory="./chroma_db")
     db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
 
     # Retriever
+    result = db.similarity_search("하자 발생 시 보수 작업은?")
+    print(result)
+    
     retriever = db.as_retriever(search_kwargs={"k": 4})
 
     # Load LORA MODEL
