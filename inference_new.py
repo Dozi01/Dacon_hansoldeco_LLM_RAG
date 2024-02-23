@@ -28,6 +28,7 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 def main(CFG):
+
     modelPath = "distiluse-base-multilingual-cased-v1"
     model_kwargs = {'device':'cuda'}
     encode_kwargs = {'normalize_embeddings': False}
@@ -174,14 +175,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default=None)
     parser.add_argument('--gpu', type=int, default=None)
-
+    parser.add_argument('--ft', type=bool, default=None)
+    parser.add_argument('--rag', type=bool, default=None)
     args = parser.parse_args()
 
+    
     CFG = Config()
     CFG = CFG.from_yaml('./configs/config.yaml')
     CFG_custom = Config()
     CFG_custom = CFG.from_yaml('./configs/' + args.config)
     CFG.update(CFG_custom)
     CFG.device = 'cuda:' + str(args.gpu)
-
+    
+    CFG.ft = args.ft
+    CFG.rag = args.rag
+    print(CFG.ft)
+    
     main(CFG)
