@@ -44,9 +44,9 @@ def main(CFG):
 
     # Load LORA MODEL
     print('load : ', CFG.new_model)
-    config = PeftConfig.from_pretrained(CFG.new_model)
+    config = PeftConfig.from_pretrained('./checkpoints/'+CFG.new_model)
     base_model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path)
-    model = PeftModel.from_pretrained(base_model, CFG.new_model)
+    model = PeftModel.from_pretrained(base_model, './checkpoints/' + CFG.new_model)
     model.to(CFG.device)
 
     # Load tokenizer
