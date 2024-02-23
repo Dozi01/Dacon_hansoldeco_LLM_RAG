@@ -1,0 +1,90 @@
+# The model that you want to train from the Hugging Face hub
+model_name : "LDCC/LDCC-SOLAR-10.7B"
+
+# Fine-tuned model name
+new_model : "SOLAR"
+
+wandb:
+  project_name : 'SOLAR'
+  run_name : 'solar'
+
+device_map : 'auto'
+inference_batch_size : 4
+
+# TrainingArguments parameters
+Train_args:
+  # Output directory where the model predictions and checkpoints will be stored
+  output_dir : "./results"
+  # Number of training epochs
+  num_train_epochs : 10
+  # Enable fp16/bf16 training (set bf16 to True with an A100)
+  fp16 : False
+  bf16 : False
+  # Batch size per GPU for training
+  per_device_train_batch_size : 16
+  # Batch size per GPU for evaluation
+  per_device_eval_batch_size : 16
+  # Number of update steps to accumulate the gradients for
+  gradient_accumulation_steps : 1
+  # Enable gradient checkpointing
+  gradient_checkpointing : True
+  # Maximum gradient normal (gradient clipping)
+  max_grad_norm : 0.3
+  # Initial learning rate (AdamW optimizer)
+  learning_rate : 2.0e-4
+  # Weight decay to apply to all layers except bias/LayerNorm weights
+  weight_decay : 0.001
+  # Optimizer to use
+  optim : "paged_adamw_32bit"
+  # Learning rate schedule
+  lr_scheduler_type : "cosine"
+  # Number of training steps (overrides num_train_epochs)
+  max_steps : -1
+  # Ratio of steps for a linear warmup (from 0 to learning rate)
+  warmup_ratio : 0.03
+  # Group sequences into batches with same length
+  # Saves memory and speeds up training considerably
+  group_by_length : True
+  # (str or IntervalStrategy, optional, defaults to "steps") — The checkpoint save strategy to adopt during training. Possible values are:
+  save_strategy : "epoch"
+  # Save checkpoint every X updates steps
+  save_steps : 0
+  # Log every X updates steps
+  logging_steps : 5
+
+
+# QLoRA parameters
+lora:
+  # LoRA attention dimension
+  lora_r : 256
+  # Alpha parameter for LoRA scaling
+  lora_alpha : 128
+  # Dropout probability for LoRA layers
+  target_modules : ["q_proj",
+    "up_proj",
+    "o_proj",
+    "k_proj",
+    "down_proj",
+    "gate_proj",
+    "v_proj"]
+  lora_dropout : 0.05 
+  task_type : "CAUSAL_LM"
+# bitsandbytes parameters
+bnb:
+  # Activate 4-bit precision base model loading
+  use_4bit : True
+  # Compute dtype for 4-bit base models
+  bnb_4bit_compute_dtype : "float16"
+  # Quantization type (fp4 or nf4)
+  bnb_4bit_quant_type : "nf4"
+  # Activate nested quantization for 4-bit base models (double quantization)
+  use_nested_quant : False
+
+
+SFT:
+  dataset_text_field : "QnA"
+  # Maximum sequence length to use
+  max_seq_length : 1024
+  # Pack multiple short examples in the same input sequence to increase efficiency
+  packing : False
+
