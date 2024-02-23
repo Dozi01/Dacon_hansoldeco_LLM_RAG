@@ -5,8 +5,7 @@ new_model : "gemma-7b-it_lora256"
 
 wandb:
   project_name : 'gemma-7b-it'
-  run_name : 'gemma-7b-it'
 
 Train_args:
   per_device_train_batch_size : 8
-  output_dir : "./results/gemma"
+  output_dir : "./checkpoints/gemma"
