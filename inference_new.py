@@ -10,7 +10,6 @@ from peft import PeftConfig, PeftModel
 from tqdm import tqdm
 
 import pandas as pd
-import re
 from sentence_transformers import SentenceTransformer 
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -29,12 +28,12 @@ def format_docs(docs):
 
 def main(CFG):
 
-    modelPath = "distiluse-base-multilingual-cased-v1"
-    model_kwargs = {'device':'cuda'}
+    retriver_modelPath = "distiluse-base-multilingual-cased-v1"
+    retriver_model_kwargs = {'device':CFG.device}
     encode_kwargs = {'normalize_embeddings': False}
     embeddings = HuggingFaceEmbeddings(
-        model_name=modelPath,
-        model_kwargs=model_kwargs,
+        model_name=retriver_modelPath,
+        model_kwargs=retriver_model_kwargs,
         encode_kwargs=encode_kwargs
     )
 
@@ -65,13 +64,10 @@ def main(CFG):
 
     # prompt
     template = """마지막에 질문에 답하려면 다음과 같은 맥락을 사용합니다.
-
     {context}
-
     질문: {question}
-
     답변: """
- 
+
     '''
     conversation = [ {'role': 'user', 'content': template} ] 
     prompt = tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
@@ -100,15 +96,17 @@ def main(CFG):
     # test data inference
     test = pd.read_csv('./data/test_cleaned.csv')
 
-    preds = []
-    for test_question in tqdm(test['Question']):
+    generated_answers = []
+    for i in tqdm(range(len(test))):
         # 각 질문 row 별로 대답 저장
-        preds_temp = []
+        test_question = test.at[i,'Question']
+        test_id = test.at[i,'id']
+        gen_answer = []
       
         # 입력 텍스트를 토큰화하고 모델 입력 형태로 변환
         print("="*80)
         for chunk in rag_chain.stream(test_question):
-            preds_temp.append(chunk)
+            gen_answer.append(chunk)
             print(chunk, end="", flush=True)
         print("="*80)
             
@@ -134,49 +132,31 @@ def main(CFG):
             answer_start = full_text.find(tokenizer.eos_token) + len(tokenizer.eos_token)
             answer_only = full_text[answer_start:].strip()
             answer_only = answer_only.replace('\n', ' ')
-            preds_temp.append(answer_only)
+            gen_answer.append(answer_only)
         '''
             
-        print(preds_temp)
-        preds.append(preds_temp)
+        print(gen_answer)
+        # you can add retrivered document as
+        # row = {'id' : test_id, 'answer' : gen_answer, 'retrived document' : documet}
+        row = {'id' : test_id, 'answer' : gen_answer}
+        generated_answers.append(row)
 
+    answer_df = pd.DataFrame(generated_answers)
+    file_name = f'{CFG.new_model}_rag_{CFG.rag}_ft_{CFG.ft}.csv'
+    answer_df.to_csv(f'./submission/{file_name}', index = None)
 
-    # preds 후처리
-    new_preds = []
-    for pred in preds:
-        temp = ''
-        for sentence in pred:
-            sentence = sentence.replace('\n', ' ').replace('</s>', ' ')
-            temp += sentence
-        temp += '</s>'
-        new_preds.append(temp)
+    print("=" * 80)
+    print(f"File Saved : {file_name}")
+    print("=" * 80)
 
-
-    # Embedding Vector 추출에 활용할 모델(distiluse-base-multilingual-cased-v1) 불러오기
-    model_sentence = SentenceTransformer('distiluse-base-multilingual-cased-v1')
-
-    # 생성한 모든 응답(답변)으로부터 Embedding Vector 추출
-    pred_embeddings = model_sentence.encode(new_preds)
-
-    submit = pd.read_csv('./data/sample_submission.csv')
-    # 제출 양식 파일(sample_submission.csv)을 활용하여 Embedding Vector로 변환한 결과를 삽입
-    result_df = pd.DataFrame()
-    result_df['id'] = submit['id']
-    result_df['result'] = new_preds
-    result_df.to_csv(f'./submission/{CFG.new_model}_result.csv', index=False)
-
-    submit.iloc[:,1:] = pred_embeddings
-    submit.to_csv(f'./submission/{CFG.new_model}_embedding.csv', index=False)
-    
-        
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default=None)
     parser.add_argument('--gpu', type=int, default=None)
-    parser.add_argument('--ft', type=bool, default=None)
-    parser.add_argument('--rag', type=bool, default=None)
+    parser.add_argument('--ft', type=bool, default=True)
+    parser.add_argument('--rag', type=bool, default=True)
     args = parser.parse_args()
 
     
@@ -189,6 +169,5 @@ if __name__ == '__main__':
     
     CFG.ft = args.ft
     CFG.rag = args.rag
-    print(CFG.ft)
     
     main(CFG)
