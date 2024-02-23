@@ -2,6 +2,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores.chroma import Chroma
 from data_loader import load_train_data
 
+print()
+
 data = load_train_data()
 
 # Embedding Model 로드
