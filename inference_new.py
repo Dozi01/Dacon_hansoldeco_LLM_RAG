@@ -25,9 +25,30 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def main(CFG):
-    
+    modelPath = "distiluse-base-multilingual-cased-v1"
+    model_kwargs = {'device':'cuda'}
+    encode_kwargs = {'normalize_embeddings': False}
+    embeddings = HuggingFaceEmbeddings(
+        model_name=modelPath,
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs
+    )
+
+    # Load Documents (data loader)
+    loader = CSVLoader(file_path='Dacon_hansoldeco_LLM_RAG/data/train_data.csv', encoding='utf-8')
+    data = loader.load()
+
+    # Load ChromaDb
+    db = Chroma.from_documents(data, embeddings, persist_directory="./chroma_db")
+    db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+
+    # Retriever
+    retriever = db.as_retriever(search_kwargs={"k": 4})
+
     # Load LORA MODEL
     print('load : ', CFG.new_model)
     config = PeftConfig.from_pretrained(CFG.new_model)
@@ -44,7 +65,32 @@ def main(CFG):
     print("model is in device : " + str(model.device))
     print("=" * 80)
 
+    # RAG pipeline
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512, device=CFG.device, torch_dtype=torch.float16)
+    hf = HuggingFacePipeline(pipeline=pipe)
 
+    # prompt
+    template = """마지막에 질문에 답하려면 다음과 같은 맥락을 사용합니다.
+
+    {context}
+
+    질문: {question}
+
+    유용한 답변: """
+
+    custom_rag_prompt = PromptTemplate.from_template(template)
+
+    rag_chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | custom_rag_prompt
+        | hf
+        | StrOutputParser()
+    )
+    # Chunk generation
+    for chunk in rag_chain.stream("도배지에 녹은 자국이 발생하는 주된 원인과 그 해결 방법은 무엇인가요?"):
+        print(chunk, end="", flush=True)
+
+    # test data inference
     test = pd.read_csv('./data/test.csv')
     test['질문'] = test['질문'].apply(lambda x : re.split('[?!.]', x))
 
