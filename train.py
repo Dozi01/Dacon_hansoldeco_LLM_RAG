@@ -131,14 +131,13 @@ if __name__ == '__main__':
 
     CFG = Config()
     CFG = CFG.from_yaml('./configs/config.yaml')
-    CFG_custom = Config()
-    CFG_custom = CFG.from_yaml('./configs/' + args.config)
-    CFG.update(CFG_custom)
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    model_CFG = Config()
+    model_CFG = model_CFG.from_yaml('./configs/' + args.config)
+    CFG.update(model_CFG)
+    os.environ["CUDA_VISIBLE_DEVICES"]= args.gpu
     print("=" * 80)
-    print("Device COUNT : ", torch.cuda.device_count())
-    print("Device Num : ", args.gpu)
-
+    print('Count of using GPUs:', torch.cuda.device_count())
+    print('Current cuda device:', args.gpu, f'({torch.cuda.current_device()})')
     print("=" * 80)
     print(CFG)
     

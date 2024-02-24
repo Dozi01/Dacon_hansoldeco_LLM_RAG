@@ -8,3 +8,5 @@ wandb:
 
 dataset_name : 'solar'
 
+Train_args:
+  output_dir : "./checkpoints/soalr/"

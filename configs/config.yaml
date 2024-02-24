@@ -15,7 +15,7 @@ Train_args:
   # Output directory where the model predictions and checkpoints will be stored
   output_dir : "./checkpoints/"
   # Number of training epochs
-  num_train_epochs : 10
+  num_train_epochs : 7
   # Enable fp16/bf16 training (set bf16 to True with an A100)
   fp16 : False
   bf16 : False
