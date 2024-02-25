@@ -13,7 +13,7 @@ def concat_answer(answer_df : pd.DataFrame) -> pd.DataFrame:
 
     pred_embeddings = model_sentence.encode(answer_by_id_df['answer'])
 
-    submission_df = pd.read_csv('../data/sample_submission.csv')
+    submission_df = pd.read_csv('./data/sample_submission.csv')
     # 제출 양식 파일(sample_submission.csv)을 활용하여 Embedding Vector로 변환한 결과를 삽입
     submission_df.iloc[:,1:] = pred_embeddings
     return submission_df
@@ -21,6 +21,6 @@ def concat_answer(answer_df : pd.DataFrame) -> pd.DataFrame:
 if __name__ == '__main__':
     # useage example. change answer_file to test.
     answer_file = 'SOLAR_lora256_rag_True_ft_True'
-    answer_df = pd.read_csv(f'../submission/{answer_file}.csv', encoding = 'utf-8')
+    answer_df = pd.read_csv(f'./submission/{answer_file}.csv', encoding = 'utf-8')
     submission_df = concat_answer(answer_df)
-    submission_df.to_csv(f'../submission/{answer_file}_embedding.csv', index=False)
+    submission_df.to_csv(f'./submission/{answer_file}_embedding.csv', index=False)
