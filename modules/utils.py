@@ -1,6 +1,15 @@
 import yaml
 
 
+def format_docs(docs):
+    formatted_docs = ''
+    for doc in docs:
+        answer_start = doc.page_content.find('답변: ') + len('답변: ')
+        answer_only = doc.page_content[answer_start:]
+        formatted_docs += answer_only + '\n'
+    return formatted_docs
+
+
 class Config(object):
     def __init__(self, dict_config=None):
         super().__init__()
