@@ -2,11 +2,6 @@ import os
 from modules.utils import Config
 import argparse
 
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer
-)
-
 from peft import PeftConfig, PeftModel
 from tqdm import tqdm
 
@@ -51,10 +46,10 @@ def main(CFG):
 
     if CFG.ft == True:
         model = PeftModel.from_pretrained(base_model, './checkpoints/' + CFG.new_model)
+        model.to(CFG.device)
     elif CFG.ft == False:
         model = base_model
 
-    model.to(CFG.device)
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path, padding_side="left")
@@ -93,7 +88,8 @@ def main(CFG):
         # generation for rag
         if CFG.rag == True:
             docs = retriever.get_relevant_documents(test_question)
-            formatted_docs = format_docs(docs)
+            formatted_docs = format_docs(docs, CFG.max_tokens//3)
+
             prompt = f'''<|im_start|>system\nAct like a wallpapering expert. Use the following documents to answer the questions. you must answer the question in Korean.<|im_end|>\n{formatted_docs}<|im_start|>user\n질문 : {test_question} 답변 : <|im_end|>\n<|im_start|>assistant'''
 
         elif CFG.rag == False:
@@ -103,7 +99,7 @@ def main(CFG):
         # 답변 생성
         output_sequences = model.generate(
             input_ids=input_ids.to(CFG.device),
-            max_length=4096,
+            max_length=CFG.max_token,
             temperature=0.9,
             top_k=1,
             top_p=0.9,
@@ -145,6 +141,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default=None)
     parser.add_argument('--gpu', type=str, default=None)
+    parser.add_argument('--max_token', type=int, default=1024)
+
     parser.add_argument('--ft', action=argparse.BooleanOptionalAction, required=True)
     parser.add_argument('--rag', action=argparse.BooleanOptionalAction, required=True)
 
@@ -164,5 +162,6 @@ if __name__ == '__main__':
     
     CFG.ft = args.ft
     CFG.rag = args.rag
+    CFG.max_token = args.max_token
 
     main(CFG)

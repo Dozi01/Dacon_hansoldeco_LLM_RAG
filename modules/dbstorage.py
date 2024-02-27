@@ -12,8 +12,8 @@ embeddings = HuggingFaceEmbeddings(
 )
 
 # Load Documents (data loader)
-loader = CSVLoader(file_path='./data/train_data.csv', encoding='utf-8')
+loader = CSVLoader(file_path='./data/train_data_q2a5.csv', encoding='utf-8')
 data = loader.load()
 
 # Load ChromaDb
-db = Chroma.from_documents(data, embeddings, persist_directory="./chroma_db")
+db = Chroma.from_documents(data, embeddings, persist_directory="./chroma_db_q2a5")

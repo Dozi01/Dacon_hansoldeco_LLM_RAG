@@ -1,7 +1,7 @@
 model_name : "LDCC/LDCC-SOLAR-10.7B"
 
 # Fine-tuned model name
-new_model : "SOLAR_dset_change"
+new_model : "SOLAR_lora256"
 
 wandb:
   project_name : 'SOLAR'
@@ -9,4 +9,4 @@ wandb:
 dataset_name : 'solar'
 
 Train_args:
-  output_dir : "./checkpoints/soalr/"
+  output_dir : "./checkpoints/solar/"

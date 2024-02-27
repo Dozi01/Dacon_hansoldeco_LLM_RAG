@@ -1,12 +1,14 @@
 import yaml
 
 
-def format_docs(docs):
+def format_docs(docs, max_document_length):
     formatted_docs = ''
     for doc in docs:
         answer_start = doc.page_content.find('답변: ') + len('답변: ')
         answer_only = doc.page_content[answer_start:]
         formatted_docs += answer_only + '\n'
+    if len(formatted_docs) > max_document_length:
+        formatted_docs = formatted_docs[:max_document_length]
     return formatted_docs
 
 
