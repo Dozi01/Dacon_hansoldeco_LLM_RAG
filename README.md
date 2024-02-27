@@ -8,10 +8,10 @@ https://dacon.io/competitions/official/236216/overview/description
 
 <img width="563" alt="image" src="https://github.com/KU-BIG/KUBIG_2024_SPRING/assets/138692039/c03d3001-c6c7-4153-9d4f-1f8a72ec36b0">
 
-'''
-python module/preprocess.py
-python module/dbstorage.py
-'''
+
+    python module/preprocess.py
+    python module/dbstorage.py
+
 
 ## 데이터 소개
 ### Train data
